@@ -27,9 +27,33 @@ function Board() {
     }
   }, [board, noOfBombs]);
 
+  const handleRightClick = (id) => {
+    const row = Math.floor(id / 8);
+    const col = id % 8;
+    if (board[row][col].isVisible) return;
+    setBoard((prevBoard) => {
+      let newBoard = new Array(8);
+      for (let i = 0; i < 8; i++) {
+        newBoard[i] = [];
+        for (let j = 0; j < 8; j++) {
+          newBoard[i].push({
+            ...prevBoard[i][j],
+            isFlag:
+              i === row && j === col
+                ? !prevBoard[i][j].isFlag
+                : prevBoard[i][j].isFlag,
+          });
+        }
+      }
+      return newBoard;
+    });
+  };
+
   const handleClick = (id) => {
     const row = Math.floor(id / 8);
     const col = id % 8;
+
+    if (board[row][col].isFlag) return;
 
     const dx = [0, 0, -1, 1, -1, -1, 1, 1];
     const dy = [1, -1, 0, 0, -1, 1, -1, 1];
@@ -63,7 +87,11 @@ function Board() {
         newBoard[i] = [];
         for (let j = 0; j < 8; j++) {
           if (tmp.some((element) => element.x === i && element.y === j)) {
-            newBoard[i].push({ ...prevBoard[i][j], isVisible: true });
+            newBoard[i].push({
+              ...prevBoard[i][j],
+              isVisible: true,
+              isFlag: false,
+            });
           } else {
             newBoard[i].push({ ...prevBoard[i][j] });
           }
@@ -77,31 +105,34 @@ function Board() {
     <div
       style={{
         border: "1px solid grey",
-        width: "210px",
-        display: "flex",
-        flexWrap: "wrap",
         backgroundColor: "#3ab1e8",
       }}
     >
-      {board.map((item, _) =>
-        item.map((each) => (
-          <Square
-            key={each.id}
-            id={each.id}
-            val={each.val}
-            isVisible={each.isVisible}
-            handleClick={(id) => handleClick(id)}
-          />
-        ))
-      )}
+      <table>
+        <tbody>
+          {board.map((item, _) => (
+            <tr style={{ display: "flex" }}>
+              {item.map((each) => (
+                <Square
+                  key={each.id}
+                  id={each.id}
+                  val={each.val}
+                  isVisible={each.isVisible}
+                  isFlag={each.isFlag}
+                  handleClick={(id) => handleClick(id)}
+                  handleRightClick={handleRightClick}
+                />
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <div
         style={{
           marginTop: "10px",
           paddingLeft: "5px",
           paddingRight: "5px",
-          width: "210px",
-          height: "30px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -139,6 +170,7 @@ const getValue = (x, y, boardCopy) => {
   return cnt;
 };
 
+// function to get initialBoard in 1-D array with bomb position
 const getLinearBoard = (noOfBombs) => {
   const arr = new Array(64);
   for (let i = 0; i < arr.length; i++) {
@@ -155,6 +187,7 @@ const getLinearBoard = (noOfBombs) => {
   return tmp;
 };
 
+// function to get initial Board with bomb and value
 const getBoard = (noOfBombs) => {
   const linerBoard = getLinearBoard(noOfBombs);
   const newBoard = new Array(8);
@@ -165,6 +198,7 @@ const getBoard = (noOfBombs) => {
         id: i * 8 + j,
         val: linerBoard[i * 8 + j],
         isVisible: false,
+        isFlag: false,
       });
     }
   }

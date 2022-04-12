@@ -2,6 +2,7 @@ function Square({ id, value, onClick }) {
   return (
     <div
       style={{
+        cursor: "pointer",
         height: "50px",
         width: "50px",
         display: "flex",
